@@ -38,10 +38,11 @@ public interface ProfileRepository extends ReactiveMongoRepository<Profile, Stri
                 .thenMany( this.profileRepository.findAll())
                 .subscribe(log::info);
     }
-}
 
+
+> vm options to run faster : -noverify -XX:TieredStopAtLevel=1
 #### Using new Subscribe()
-...
+      ...
 
       this.profileRepository.deleteAll()
             .thenMany(profiles)
@@ -111,3 +112,38 @@ And is activated when the profile is created
         return this.profileRepository.save( new Profile(null, email))
                 .doOnSuccess(profile -> this.applicationEventPublisher.publishEvent( new ProfileCreatedEvent( profile)));
     }
+
+#### A Profile Controller 
+
+    @RestController
+    @RequestMapping("/profiles")
+    public class ProfileController {
+
+    private final ProfileService profileService;
+
+    public ProfileController(ProfileService profileService) {
+        this.profileService = profileService;
+    }
+
+    @GetMapping
+    Flux<Profile> all(){
+        return this.profileService.all();
+    }
+
+    @RequestMapping("/{id}")
+    Mono<Profile> byId(@PathVariable("id") String id){
+        return this.profileService.byId(id);
+    }
+
+    @PostMapping
+    Mono<ResponseEntity<Object>> create(@RequestBody Profile profile) {
+        return this.profileService.create( profile.getEmail())
+                .map(profileSaved -> ResponseEntity.created(URI.create("/profiles/" + profileSaved.getId()))
+                        .build());
+
+    }
+}
+
+## Test the controller
+To test the profile controller is necessary disable the okta dependency, other way a login window in browser is shown.
+

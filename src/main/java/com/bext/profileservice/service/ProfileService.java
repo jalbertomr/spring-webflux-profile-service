@@ -19,16 +19,16 @@ public class ProfileService {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    Mono<Profile> create(String email){
+    public Mono<Profile> create(String email){
         return this.profileRepository.save( new Profile(null, email))
                 .doOnSuccess(profile -> this.applicationEventPublisher.publishEvent( new ProfileCreatedEvent( profile)));
     }
 
-    Flux<Profile> all() {
+    public Flux<Profile> all() {
         return this.profileRepository.findAll();
     }
 
-    Mono<Profile> byId(String id){
+    public Mono<Profile> byId(String id){
         return this.profileRepository.findById(id);
     }
 }
