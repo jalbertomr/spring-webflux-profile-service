@@ -147,3 +147,42 @@ And is activated when the profile is created
 ## Test the controller
 To test the profile controller is necessary disable the okta dependency, other way a login window in browser is shown.
 
+## ProfileCreatedEventPublisher
+
+  The ProfileCreatedEventPublisher works as a glue between the producer of the events of profile created and put then in a 
+  deque from a Consumer takes it and as FluxSink of ProfileCreatedEvents will be available for everyone that use this consumer.
+  
+    public class ProfileCreatedEventPublisher implements ApplicationListener<ProfileCreatedEvent>, Consumer<FluxSink<ProfileCreatedEvent>> {
+    
+        private final BlockingDeque<ProfileCreatedEvent> profileEventsDeque = new LinkedBlockingDeque<>();
+        private final Executor executor;
+    
+        public ProfileCreatedEventPublisher(Executor executor) {
+            this.executor = executor;
+        }
+    
+        @Override
+        public void accept(FluxSink<ProfileCreatedEvent> profileCreatedEventFluxSink) {
+            this.executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    while (true){
+                        try {
+                            profileCreatedEventFluxSink.next( profileEventsDeque.take());
+                        } catch (InterruptedException e) {
+                            ReflectionUtils.rethrowRuntimeException(e);
+                        }
+                    }
+                }
+            });
+        }
+    
+        @Override
+        public void onApplicationEvent(ProfileCreatedEvent profileCreatedEvent) {
+            this.profileEventsDeque.offer(profileCreatedEvent);
+        }
+    }
+  
+
+## ServiceSendEvents
+
