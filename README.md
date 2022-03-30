@@ -84,4 +84,30 @@ public interface ProfileRepository extends ReactiveMongoRepository<Profile, Stri
 #### Sample of IO Synchronous and Asynchronous Read, from an input.txt file wich has been located 
   on user Desktop folder
   
-              
+#### Profile Service
+
+-   all()
+-   byId(String id)              
+- create( Profile))
+
+#### Event Sourcing
+###### When a new record is created an event is shoted to be comunicated with other components in the same JVM, like on CQRS
+
+An ApplicationEvent with the profile is needed
+
+    public class ProfileCreatedEvent extends ApplicationEvent {
+       public ProfileCreatedEvent(Profile source) {
+           super(source);
+       }
+    }
+
+And is activated when the profile is created
+
+    service
+    ...
+    private final ApplicationEventPublisher applicationEventPublisher;
+    ...
+    Mono<Profile> create(String email){
+        return this.profileRepository.save( new Profile(null, email))
+                .doOnSuccess(profile -> this.applicationEventPublisher.publishEvent( new ProfileCreatedEvent( profile)));
+    }
