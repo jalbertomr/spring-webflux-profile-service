@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document
-public class Profie {
+public class Profile {
     @Id
     String id;
     String email;
