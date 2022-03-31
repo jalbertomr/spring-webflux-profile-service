@@ -1,4 +1,6 @@
 # Spring WebFlux profile service
+
+ more details on [jalbertomr.blogspot.com](https://jalbertomr.blogspot.com/2022/03/spring-webflux-profile-service.html)
 #### create Profile Model
 - create Profile Model
 
