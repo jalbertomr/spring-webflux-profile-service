@@ -183,6 +183,36 @@ To test the profile controller is necessary disable the okta dependency, other w
         }
     }
   
+![image of ProfileCreatedEventPublisher](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjl99oCbpB1DDRUufjKR1QFB8z8clowABsnTjyl8Ujg6dKZrQQ7-lyF1ZNnCKj4EBBu8eA5CqMqC_jCFKT8Hjq5VMWBPwn1AKmxvZXuyQIkBDATf5zru2MZw-LT15osJWR4dnkdk8bBPoYqjseWitiSVReHmX91ji3hyisa6U4OF7qFvzvUcwea1wuo/s1023/ProfileCreatedEventPublisher.JPG)
 
-## ServiceSendEvents
+## ServiceSendEventsController
+
+Using the ProfileCreatedEventPublisher the ServiceSendEventsController  takes as a flux the .share() of the PrifileCreatedEventPublisher
+by an http endpoint.
+
+    @RestController
+    public class ServiceSendEventsController {
+    
+        private final ProfileCreatedEventPublisher profileCreatedEventPublisher;
+        private final Flux<ProfileCreatedEvent> fluxProfileCreatedEvent;
+        private final ObjectMapper objectMapper;
+    
+        @SneakyThrows
+        private String json(ProfileCreatedEvent pce){
+            return this.objectMapper.writeValueAsString( pce);
+        }
+    
+        public ServiceSendEventsController(ProfileCreatedEventPublisher profileCreatedEventPublisher, ObjectMapper objectMapper) {
+            this.profileCreatedEventPublisher = profileCreatedEventPublisher;
+            this.objectMapper = objectMapper;
+            this.fluxProfileCreatedEvent = Flux.create( this.profileCreatedEventPublisher).share();
+        }
+    
+        @GetMapping(produces= MediaType.TEXT_EVENT_STREAM_VALUE, value = "/sse/profiles")
+        Flux<String> serviceSendEvent(){
+            return this.fluxProfileCreatedEvent
+                    .map( profileCreatedEvent -> json(profileCreatedEvent));
+        }
+    }
+    
 
